@@ -73,13 +73,30 @@ WSGI_APPLICATION = 'server.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': config('DB_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME': config('MYSQL_DATABASE', os.path.join(BASE_DIR, 'db.sqlite3')),
-        'USER': config('MYSQL_USER', "myuser"),
-        'PASSWORD': config('MYSQL_PASSWORD', "mypassword"),
+    'default': {},
+    'shared_db': {
+        'ENGINE': config('SHARED_MYSQL_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': config('SHARED_MYSQL_DATABASE', os.path.join(BASE_DIR, 'shared_db.sqlite3')),
+        'USER': config('SHARED_MYSQL_USER', "myuser"),
+        'PASSWORD': config('SHARED_MYSQL_PASSWORD', "sharedpassword"),
         'HOST': config('DB_HOST', 'localhost'),
-        'PORT': config('DB_PORT', '3306'),  
+        'PORT': config('SHARED_PORT', '3306'),  
+    },
+    'council_db': {
+        'ENGINE': config('COUNCIL_MYSQL_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': config('COUNCIL_MYSQL_DATABASE', os.path.join(BASE_DIR, 'council_db.sqlite3')),
+        'USER': config('COUNCIL_MYSQL_USER', "myuser"),
+        'PASSWORD': config('COUNCIL_MYSQL_PASSWORD', "councilpassword"),
+        'HOST': config('DB_HOST', 'localhost'),
+        'PORT': config('COUNCIL_PORT', '3306'),  
+    },
+    'admission_db': {
+        'ENGINE': config('ADMISSION_MYSQL_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': config('ADMISSION_MYSQL_DATABASE', os.path.join(BASE_DIR, 'admission_db.sqlite3')),
+        'USER': config('ADMISSION_MYSQL_USER', "myuser"),
+        'PASSWORD': config('ADMISSION_MYSQL_PASSWORD', "admissionpassword"),
+        'HOST': config('DB_HOST', 'localhost'),
+        'PORT': config('ADMISSION_PORT', '3306'),  
     }
 }
 

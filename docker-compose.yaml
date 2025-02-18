@@ -1,19 +1,55 @@
 services:
-  db:
+  shared_db:
     image: mysql:latest
-    container_name: test_db
+    container_name: shared_db
     restart: always
     volumes:
-      - data:/var/lib/mysql
+      - shared_data:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${SHARED_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${SHARED_MYSQL_DATABASE}
+      MYSQL_USER: ${SHARED_MYSQL_USER}
+      MYSQL_PASSWORD: ${SHARED_MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     healthcheck:
-      test: ["CMD", "mysql", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}", "-e", "SELECT 1"]
+      test: ["CMD", "mysql", "-h", "localhost", "-u", "root", "-p${SHARED_MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1"]
+      timeout: 20s
+      retries: 10
+
+  council_db:
+    image: mysql:latest
+    container_name: council_db
+    restart: always
+    volumes:
+      - council_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${COUNCIL_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${COUNCIL_MYSQL_DATABASE}
+      MYSQL_USER: ${COUNCIL_MYSQL_USER}
+      MYSQL_PASSWORD: ${COUNCIL_MYSQL_PASSWORD}
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysql", "-h", "localhost", "-u", "root", "-p${COUNCIL_MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1"]
+      timeout: 20s
+      retries: 10
+
+  admission_db:
+    image: mysql:latest
+    container_name: admission_db
+    restart: always
+    volumes:
+      - admission_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ADMISSION_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${ADMISSION_MYSQL_DATABASE}
+      MYSQL_USER: ${ADMISSION_MYSQL_USER}
+      MYSQL_PASSWORD: ${ADMISSION_MYSQL_PASSWORD}
+    ports:
+      - "3308:3306"
+    healthcheck:
+      test: ["CMD", "mysql", "-h", "localhost", "-u", "root", "-p${ADMISSION_MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1"]
       timeout: 20s
       retries: 10
 
@@ -31,8 +67,14 @@ services:
     env_file:
       - .env
     depends_on:
-      db:
+      shared_db:
+        condition: service_healthy
+      council_db:
+        condition: service_healthy
+      admission_db:
         condition: service_healthy
 
 volumes:
-  data:
+  shared_data:
+  council_data:
+  admission_data:
