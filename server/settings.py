@@ -24,7 +24,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -36,9 +36,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    # local apps
+    'admission',
+    'council',
+    'shared_tenant',
 ]
 
 MIDDLEWARE = [
+    'shared_tenant.middleware.TenantMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -100,7 +106,13 @@ DATABASES = {
     }
 }
 
+DATABASE_APPS_MAPPING = {
+    'shared_tenant': 'shared_db',
+    'admission': 'admission_db',
+    'council': 'council_db',
+}
 
+DATABASE_ROUTERS = ['server.db_routers.TenantRouter']
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
