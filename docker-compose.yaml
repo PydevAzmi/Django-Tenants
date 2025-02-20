@@ -1,10 +1,7 @@
 services:
   shared_db:
-    image: mysql:latest
+    image: mysql:8.0
     container_name: shared_db
-    restart: always
-    volumes:
-      - shared_data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${SHARED_MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${SHARED_MYSQL_DATABASE}
@@ -12,17 +9,11 @@ services:
       MYSQL_PASSWORD: ${SHARED_MYSQL_PASSWORD}
     ports:
       - "3306:3306"
-    healthcheck:
-      test: ["CMD", "mysql", "-h", "localhost", "-u", "root", "-p${SHARED_MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1"]
-      timeout: 20s
-      retries: 10
-
+    env_file:
+      - .env  
   council_db:
-    image: mysql:latest
+    image: mysql:8.0
     container_name: council_db
-    restart: always
-    volumes:
-      - council_data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${COUNCIL_MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${COUNCIL_MYSQL_DATABASE}
@@ -30,17 +21,12 @@ services:
       MYSQL_PASSWORD: ${COUNCIL_MYSQL_PASSWORD}
     ports:
       - "3307:3306"
-    healthcheck:
-      test: ["CMD", "mysql", "-h", "localhost", "-u", "root", "-p${COUNCIL_MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1"]
-      timeout: 20s
-      retries: 10
+    env_file:
+      - .env  
 
   admission_db:
-    image: mysql:latest
+    image: mysql:8.0
     container_name: admission_db
-    restart: always
-    volumes:
-      - admission_data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${ADMISSION_MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${ADMISSION_MYSQL_DATABASE}
@@ -48,18 +34,15 @@ services:
       MYSQL_PASSWORD: ${ADMISSION_MYSQL_PASSWORD}
     ports:
       - "3308:3306"
-    healthcheck:
-      test: ["CMD", "mysql", "-h", "localhost", "-u", "root", "-p${ADMISSION_MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1"]
-      timeout: 20s
-      retries: 10
+    env_file:
+      - .env  
 
-  backend:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    container_name: multi_tenant
-    command: "python manage.py runserver 0.0.0.0:8000"
-    restart: always
+  web:
+    build: .
+    container_name: web
+    command: >
+      bash -c "while ! nc -z shared_db 3306 || ! nc -z council_db 3306 || ! nc -z admission_db 3306; do sleep 1; done &&
+               python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
     ports:
@@ -67,14 +50,9 @@ services:
     env_file:
       - .env
     depends_on:
-      shared_db:
-        condition: service_healthy
-      council_db:
-        condition: service_healthy
-      admission_db:
-        condition: service_healthy
-
+      - shared_db
+      - council_db
+      - admission_db
+      
 volumes:
-  shared_data:
-  council_data:
-  admission_data:
+  data:

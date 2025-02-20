@@ -36,9 +36,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # local apps
+    'shared_tenant',
+    'council',
+    'admission',
 ]
 
 MIDDLEWARE = [
+    'shared_tenant.tenant_middleware.TenantMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -73,33 +79,34 @@ WSGI_APPLICATION = 'server.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {},
-    'shared_db': {
+    'default': {
         'ENGINE': config('SHARED_MYSQL_ENGINE', 'django.db.backends.sqlite3'),
         'NAME': config('SHARED_MYSQL_DATABASE', os.path.join(BASE_DIR, 'shared_db.sqlite3')),
         'USER': config('SHARED_MYSQL_USER', "myuser"),
         'PASSWORD': config('SHARED_MYSQL_PASSWORD', "sharedpassword"),
-        'HOST': config('DB_HOST', 'localhost'),
-        'PORT': config('SHARED_PORT', '3306'),  
+        'HOST': config('SHARED_DB_HOST', 'localhost'),
+        'PORT': config('SHARED_PORT', '3306'),
     },
     'council_db': {
         'ENGINE': config('COUNCIL_MYSQL_ENGINE', 'django.db.backends.sqlite3'),
         'NAME': config('COUNCIL_MYSQL_DATABASE', os.path.join(BASE_DIR, 'council_db.sqlite3')),
         'USER': config('COUNCIL_MYSQL_USER', "myuser"),
         'PASSWORD': config('COUNCIL_MYSQL_PASSWORD', "councilpassword"),
-        'HOST': config('DB_HOST', 'localhost'),
-        'PORT': config('COUNCIL_PORT', '3306'),  
+        'HOST': config('COUNCIL_DB_HOST', 'localhost'),
+        'PORT': config('COUNCIL_PORT', '3306'),
     },
     'admission_db': {
         'ENGINE': config('ADMISSION_MYSQL_ENGINE', 'django.db.backends.sqlite3'),
         'NAME': config('ADMISSION_MYSQL_DATABASE', os.path.join(BASE_DIR, 'admission_db.sqlite3')),
         'USER': config('ADMISSION_MYSQL_USER', "myuser"),
         'PASSWORD': config('ADMISSION_MYSQL_PASSWORD', "admissionpassword"),
-        'HOST': config('DB_HOST', 'localhost'),
-        'PORT': config('ADMISSION_PORT', '3306'),  
+        'HOST': config('ADMISSION_DB_HOST', 'localhost'),
+        'PORT': config('ADMISSION_PORT', '3306'),
     }
 }
 
+
+DATABASES_ROUTERS = ['server.db_routers.SharedRouter', 'server.db_routers.TenantRouter']
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
