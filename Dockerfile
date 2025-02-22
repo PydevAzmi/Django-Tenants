@@ -9,7 +9,6 @@ ENV PYTHONUNBUFFERED=1
 RUN apt-get update \
     && apt-get install -y \
         build-essential \
-        gettext \
     && rm -rf /var/lib/apt/lists/*
 
 # Create Project Folder 

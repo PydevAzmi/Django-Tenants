@@ -1,7 +1,9 @@
 from django.http import Http404
 from django.db import connections
 from shared_tenant.models import Tenant
+import threading
 
+tenant_local = threading.local()
 class TenantMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -20,10 +22,15 @@ class TenantMiddleware:
             raise Http404(f"Database connection error: {e}")
     
         # Configure the tenant database
-        connection = connections[f"{subdomain}_db"]
+        connection = connections[tenant.database_name]
         connection.settings_dict['NAME'] = tenant.database_name
         request.tenant = tenant 
-
+        tenant_local.tenant = tenant
+        
+        # Cleanup thread-local after processing the request
+        if hasattr(tenant_local, 'tenant'):
+            del tenant_local.tenant
+            
         response = self.get_response(request)
         return response
     
