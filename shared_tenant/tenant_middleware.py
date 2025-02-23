@@ -1,9 +1,12 @@
 from django.http import Http404
-from django.db import connections
 from shared_tenant.models import Tenant
 import threading
+_thread_locals = threading.local()
+    
 
-tenant_local = threading.local()
+# Helper function for the router to access the database name
+def get_current_db_name():
+    return getattr(_thread_locals, 'db', 'default')
 class TenantMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -16,21 +19,17 @@ class TenantMiddleware:
             subdomain = subdomains[1]
         try:
             tenant = Tenant.objects.get(subdomain=subdomain)
+            _thread_locals.db = tenant.database_name
+            request.tenant = tenant
         except Tenant.DoesNotExist:
             raise Http404("Tenant not found")
         except Exception as e:
             raise Http404(f"Database connection error: {e}")
-    
-        # Configure the tenant database
-        connection = connections[tenant.database_name]
-        connection.settings_dict['NAME'] = tenant.database_name
-        request.tenant = tenant 
-        tenant_local.tenant = tenant
+        
         
         # Cleanup thread-local after processing the request
-        if hasattr(tenant_local, 'tenant'):
-            del tenant_local.tenant
+        if hasattr(_thread_locals, 'tenant'):
+            del _thread_locals.db
             
         response = self.get_response(request)
         return response
-    

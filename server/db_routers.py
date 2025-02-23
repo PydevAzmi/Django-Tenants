@@ -1,30 +1,24 @@
 import threading
-
+from shared_tenant.tenant_middleware import get_current_db_name
 tenant_local = threading.local()
 
 class TenantRouter:
-    shared_apps = ["auth", "contenttypes", "shared_tenant"]
-
-    def _get_tenant(self):
-        return getattr(tenant_local, 'tenant', None)
-
+    shared_apps = ["auth", "contenttypes", "shared_tenant",'sessions']
     def db_for_read(self, model, **hints):
         if model._meta.app_label in self.shared_apps:
             return 'default'
-        tenant = self._get_tenant()
-        return tenant.database_name if tenant else None
+        return get_current_db_name()
 
     def db_for_write(self, model, **hints):
         if model._meta.app_label in self.shared_apps:
             return 'default'
-        tenant = self._get_tenant()
-        return tenant.database_name if tenant else None
+        # else save in shared database
+        return None
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         if app_label in self.shared_apps:
             return db == 'default'
-        tenant = self._get_tenant()
-        return db == tenant.database_name if tenant else None
+        return db == get_current_db_name()
 
     def allow_relation(self, obj1, obj2, **hints):
         db1 = obj1._state.db
